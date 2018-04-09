@@ -53,3 +53,16 @@ def mode(x):
     ls = [x_i for x_i, count in counts.items() if count == max_count]
     return ls[0]
 
+
+def check_digit(x):
+    try:
+        odd = map(int, ','.join(x[-1::-2]).split(','))
+        even = map(int, ','.join(x[-2::-2]).split(','))
+        sum_odd3 = sum(odd) * 3
+        total = sum_odd3 + sum(even)
+        rem = total % 10
+        if rem == 0:
+            return rem
+        return 10 - rem
+    except:
+        return -9999
