@@ -1,0 +1,634 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 61,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "def category_counts(data):\n",
+    "    \"\"\"\n",
+    "    Count total number of unique DepartmentDescription made on each trip.\n",
+    "    \"\"\"\n",
+    "    counts = []\n",
+    "    for array in np.asarray(data.loc[:, \"1-HR PHOTO\":\"WIRELESS\"]):\n",
+    "        count = 0\n",
+    "        for item in array:\n",
+    "            if item > 0:\n",
+    "                count += 1\n",
+    "        counts.append(count)\n",
+    "    cat_counts = pd.DataFrame(counts)\n",
+    "    cat_counts = cat_counts.rename(columns={0:\"CategoryCount\"})\n",
+    "    cat_counts = cat_counts.set_index(data.index)\n",
+    "    \n",
+    "    data.insert(6, \"CategoryCounts\", cat_counts)\n",
+    "    \n",
+    "    return data"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 62,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "def company(x):\n",
+    "    try:\n",
+    "        p = x[:6]\n",
+    "        if p == \"000000\":\n",
+    "            return x[-5]\n",
+    "        return p\n",
+    "    except:\n",
+    "        return -9999\n",
+    "    \n",
+    "def float_to_str(obj):\n",
+    "    while obj != \"nan\":\n",
+    "        obj = str(obj).split(\".\")[0]\n",
+    "        return obj"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 70,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "from collections import Counter\n",
+    "def mode(x):\n",
+    "    counts = Counter(x)\n",
+    "    max_count = max(counts.values())\n",
+    "    ls = [x_i for x_i, count in counts.items() if count == max_count]\n",
+    "    return ls[0]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 63,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "train = pd.read_csv('../dataset/train.csv')\n",
+    "test = pd.read_csv('../dataset/test.csv')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 64,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "train[\"Upc\"] = train.Upc.apply(float_to_str)\n",
+    "test[\"Upc\"] = test.Upc.apply(float_to_str)\n",
+    "\n",
+    "train[\"company\"] = train.Upc.apply(company) \n",
+    "test[\"company\"] = test.Upc.apply(company)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 71,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "train.loc[train[\"ScanCount\"] < 0, \"Return\"] = 1\n",
+    "train.loc[train[\"Return\"] != 1, \"Return\"] = 0\n",
+    "\n",
+    "test.loc[test[\"ScanCount\"] < 0, \"Return\"] = 1\n",
+    "test.loc[test[\"Return\"] != 1, \"Return\"] = 0"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 72,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "wd = {\"Monday\": 0, \"Tuesday\": 1, \"Wednesday\": 2, \"Thursday\": 3, \n",
+    "      \"Friday\": 4, \"Saturday\": 5, \"Sunday\": 6}\n",
+    "\n",
+    "train[\"Weekday\"] = train[\"Weekday\"].apply(lambda x: wd[x])\n",
+    "test[\"Weekday\"] = test[\"Weekday\"].apply(lambda x: wd[x])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 73,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "train[\"Pos_Sum\"] = train[\"ScanCount\"]\n",
+    "test[\"Pos_Sum\"] = test[\"ScanCount\"]\n",
+    "\n",
+    "train.loc[train[\"Pos_Sum\"] < 0, \"Pos_Sum\"] = 0\n",
+    "test.loc[test[\"Pos_Sum\"] < 0, \"Pos_Sum\"] = 0"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 74,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "train[\"Neg_Sum\"] = train[\"ScanCount\"]\n",
+    "test[\"Neg_Sum\"] = test[\"ScanCount\"]\n",
+    "\n",
+    "train.loc[train[\"Neg_Sum\"] > 0, \"Neg_Sum\"] = 0\n",
+    "test.loc[test[\"Neg_Sum\"] > 0, \"Neg_Sum\"] = 0"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 75,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "train = train.drop([\"Upc\", \"FinelineNumber\"], axis=1)\n",
+    "test = test.drop([\"Upc\", \"FinelineNumber\"], axis=1)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 76,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "train_dd = pd.get_dummies(train[\"DepartmentDescription\"])\n",
+    "test_dd = pd.get_dummies(test[\"DepartmentDescription\"])\n",
+    "\n",
+    "train_dd = pd.concat([train[[\"VisitNumber\"]], train_dd], axis=1)\n",
+    "test_dd = pd.concat([test[[\"VisitNumber\"]], test_dd], axis=1)\n",
+    "\n",
+    "train_dd = train_dd.groupby(\"VisitNumber\", as_index=False).sum()\n",
+    "test_dd = test_dd.groupby(\"VisitNumber\", as_index=False).sum()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 77,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "train_company = train[[\"VisitNumber\", \"company\"]]\n",
+    "test_company = test[[\"VisitNumber\", \"company\"]]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 78,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "train_company = train_company.groupby(\"VisitNumber\", as_index=False).agg(mode)\n",
+    "test_company = test_company.groupby(\"VisitNumber\", as_index=False).agg(mode)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 79,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "((95674, 69), (95674, 68))"
+      ]
+     },
+     "execution_count": 79,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "train_dd.shape, test_dd.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 80,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "((95674, 2), (95674, 2))"
+      ]
+     },
+     "execution_count": 80,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "train_company.shape, test_company.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 81,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "train_by_sum = train[[\"VisitNumber\", \"ScanCount\", \"Pos_Sum\", \"Neg_Sum\"]]\n",
+    "test_by_sum = test[[\"VisitNumber\", \"ScanCount\", \"Pos_Sum\", \"Neg_Sum\"]]\n",
+    "\n",
+    "train_by_max = train[[\"TripType\", \"VisitNumber\", \"Weekday\", \"Return\"]]\n",
+    "test_by_max = test[[\"VisitNumber\", \"Weekday\", \"Return\"]]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 82,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "train_by_sum = train_by_sum.groupby(\"VisitNumber\", as_index=False).sum()\n",
+    "test_by_sum = test_by_sum.groupby(\"VisitNumber\", as_index=False).sum()\n",
+    "\n",
+    "train_by_max = train_by_max.groupby(\"VisitNumber\", as_index=False).max()\n",
+    "test_by_max = test_by_max.groupby(\"VisitNumber\", as_index=False).max()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 83,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "train = train_by_sum.merge(train_by_max, on=[\"VisitNumber\"])\n",
+    "train = train.merge(train_dd, on=[\"VisitNumber\"])\n",
+    "train = train.merge(train_company, on=[\"VisitNumber\"])\n",
+    "\n",
+    "test = test_by_sum.merge(test_by_max, on=[\"VisitNumber\"])\n",
+    "test = test.merge(test_dd, on=[\"VisitNumber\"])\n",
+    "test = test.merge(test_company, on=[\"VisitNumber\"])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 84,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "y = train[\"TripType\"]\n",
+    "train = train.drop([\"TripType\", \"HEALTH AND BEAUTY AIDS\"], axis=1)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 85,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "train = category_counts(train)\n",
+    "test = category_counts(test)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 86,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "# train[\"R_UniqueDepts\"] = train[\"CategoryCounts\"] / train[\"Pos_Sum\"]\n",
+    "# test[\"R_UniqueDepts\"] = test[\"CategoryCounts\"] / test[\"Pos_Sum\"]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 87,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "train = pd.get_dummies(train, columns=[\"Weekday\", \"Return\"])\n",
+    "test = pd.get_dummies(test, columns=[\"Weekday\", \"Return\"])"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 88,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "((95674, 82), (95674, 82))"
+      ]
+     },
+     "execution_count": 88,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "train.shape, test.shape"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 89,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import xgboost as xgb\n",
+    "from sklearn.model_selection import train_test_split\n",
+    "from sklearn.model_selection import GridSearchCV\n",
+    "from sklearn.preprocessing import LabelEncoder"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 90,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "label_enc = LabelEncoder().fit(y)\n",
+    "y_labeled = label_enc.transform(y)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 91,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "X_train, X_test, y_train, y_test = train_test_split(\n",
+    "    train, y_labeled, random_state=0)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 92,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "dtrain = xgb.DMatrix(X_train.values, label=y_train)\n",
+    "dtest = xgb.DMatrix(X_test.values, label=y_test)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 93,
+   "metadata": {
+    "scrolled": false
+   },
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "[0]\ttrain-mlogloss:2.93853\teval-mlogloss:2.94907\n",
+      "Multiple eval metrics have been passed: 'eval-mlogloss' will be used for early stopping.\n",
+      "\n",
+      "Will train until eval-mlogloss hasn't improved in 10 rounds.\n",
+      "[1]\ttrain-mlogloss:2.3537\teval-mlogloss:2.37968\n",
+      "[2]\ttrain-mlogloss:1.93129\teval-mlogloss:1.97088\n",
+      "[3]\ttrain-mlogloss:1.68169\teval-mlogloss:1.73097\n",
+      "[4]\ttrain-mlogloss:1.50958\teval-mlogloss:1.56709\n",
+      "[5]\ttrain-mlogloss:1.37949\teval-mlogloss:1.44493\n",
+      "[6]\ttrain-mlogloss:1.2791\teval-mlogloss:1.35178\n",
+      "[7]\ttrain-mlogloss:1.19941\teval-mlogloss:1.27848\n",
+      "[8]\ttrain-mlogloss:1.13369\teval-mlogloss:1.21884\n",
+      "[9]\ttrain-mlogloss:1.07919\teval-mlogloss:1.17012\n",
+      "[10]\ttrain-mlogloss:1.0328\teval-mlogloss:1.1296\n",
+      "[11]\ttrain-mlogloss:0.993882\teval-mlogloss:1.09621\n",
+      "[12]\ttrain-mlogloss:0.960401\teval-mlogloss:1.06792\n",
+      "[13]\ttrain-mlogloss:0.931296\teval-mlogloss:1.04425\n",
+      "[14]\ttrain-mlogloss:0.905878\teval-mlogloss:1.02368\n",
+      "[15]\ttrain-mlogloss:0.88251\teval-mlogloss:1.0053\n",
+      "[16]\ttrain-mlogloss:0.862223\teval-mlogloss:0.989796\n",
+      "[17]\ttrain-mlogloss:0.844418\teval-mlogloss:0.976526\n",
+      "[18]\ttrain-mlogloss:0.827089\teval-mlogloss:0.963696\n",
+      "[19]\ttrain-mlogloss:0.811537\teval-mlogloss:0.952666\n",
+      "[20]\ttrain-mlogloss:0.798009\teval-mlogloss:0.942887\n",
+      "[21]\ttrain-mlogloss:0.784957\teval-mlogloss:0.934428\n",
+      "[22]\ttrain-mlogloss:0.772757\teval-mlogloss:0.92681\n",
+      "[23]\ttrain-mlogloss:0.762293\teval-mlogloss:0.920528\n",
+      "[24]\ttrain-mlogloss:0.751419\teval-mlogloss:0.914358\n",
+      "[25]\ttrain-mlogloss:0.742212\teval-mlogloss:0.90905\n",
+      "[26]\ttrain-mlogloss:0.733099\teval-mlogloss:0.90479\n",
+      "[27]\ttrain-mlogloss:0.724536\teval-mlogloss:0.899403\n",
+      "[28]\ttrain-mlogloss:0.7165\teval-mlogloss:0.895374\n",
+      "[29]\ttrain-mlogloss:0.709532\teval-mlogloss:0.892288\n",
+      "[30]\ttrain-mlogloss:0.702722\teval-mlogloss:0.889105\n",
+      "[31]\ttrain-mlogloss:0.696222\teval-mlogloss:0.886063\n",
+      "[32]\ttrain-mlogloss:0.689703\teval-mlogloss:0.882958\n",
+      "[33]\ttrain-mlogloss:0.683607\teval-mlogloss:0.880565\n",
+      "[34]\ttrain-mlogloss:0.678197\teval-mlogloss:0.878283\n",
+      "[35]\ttrain-mlogloss:0.672717\teval-mlogloss:0.876097\n",
+      "[36]\ttrain-mlogloss:0.667643\teval-mlogloss:0.873873\n",
+      "[37]\ttrain-mlogloss:0.662465\teval-mlogloss:0.871878\n",
+      "[38]\ttrain-mlogloss:0.657738\teval-mlogloss:0.870133\n",
+      "[39]\ttrain-mlogloss:0.653037\teval-mlogloss:0.868192\n",
+      "[40]\ttrain-mlogloss:0.648407\teval-mlogloss:0.866373\n",
+      "[41]\ttrain-mlogloss:0.643954\teval-mlogloss:0.864826\n",
+      "[42]\ttrain-mlogloss:0.639241\teval-mlogloss:0.863644\n",
+      "[43]\ttrain-mlogloss:0.635058\teval-mlogloss:0.862312\n",
+      "[44]\ttrain-mlogloss:0.630555\teval-mlogloss:0.861056\n",
+      "[45]\ttrain-mlogloss:0.627027\teval-mlogloss:0.860025\n",
+      "[46]\ttrain-mlogloss:0.622999\teval-mlogloss:0.858671\n",
+      "[47]\ttrain-mlogloss:0.619152\teval-mlogloss:0.857804\n",
+      "[48]\ttrain-mlogloss:0.615454\teval-mlogloss:0.856572\n",
+      "[49]\ttrain-mlogloss:0.611857\teval-mlogloss:0.855441\n",
+      "[50]\ttrain-mlogloss:0.608383\teval-mlogloss:0.854631\n",
+      "[51]\ttrain-mlogloss:0.605224\teval-mlogloss:0.853897\n",
+      "[52]\ttrain-mlogloss:0.601952\teval-mlogloss:0.853415\n",
+      "[53]\ttrain-mlogloss:0.598991\teval-mlogloss:0.852757\n",
+      "[54]\ttrain-mlogloss:0.595946\teval-mlogloss:0.852158\n",
+      "[55]\ttrain-mlogloss:0.592992\teval-mlogloss:0.851162\n",
+      "[56]\ttrain-mlogloss:0.589939\teval-mlogloss:0.850543\n",
+      "[57]\ttrain-mlogloss:0.587017\teval-mlogloss:0.849935\n",
+      "[58]\ttrain-mlogloss:0.584053\teval-mlogloss:0.849399\n",
+      "[59]\ttrain-mlogloss:0.581327\teval-mlogloss:0.84877\n",
+      "[60]\ttrain-mlogloss:0.578311\teval-mlogloss:0.84844\n",
+      "[61]\ttrain-mlogloss:0.575598\teval-mlogloss:0.848277\n",
+      "[62]\ttrain-mlogloss:0.572468\teval-mlogloss:0.847643\n",
+      "[63]\ttrain-mlogloss:0.57006\teval-mlogloss:0.847025\n",
+      "[64]\ttrain-mlogloss:0.567394\teval-mlogloss:0.84668\n",
+      "[65]\ttrain-mlogloss:0.564595\teval-mlogloss:0.846181\n",
+      "[66]\ttrain-mlogloss:0.561903\teval-mlogloss:0.845809\n",
+      "[67]\ttrain-mlogloss:0.559305\teval-mlogloss:0.845211\n",
+      "[68]\ttrain-mlogloss:0.556774\teval-mlogloss:0.84466\n",
+      "[69]\ttrain-mlogloss:0.554564\teval-mlogloss:0.844456\n",
+      "[70]\ttrain-mlogloss:0.551319\teval-mlogloss:0.844251\n",
+      "[71]\ttrain-mlogloss:0.54911\teval-mlogloss:0.843791\n",
+      "[72]\ttrain-mlogloss:0.546736\teval-mlogloss:0.84371\n",
+      "[73]\ttrain-mlogloss:0.544547\teval-mlogloss:0.843494\n",
+      "[74]\ttrain-mlogloss:0.541537\teval-mlogloss:0.843079\n",
+      "[75]\ttrain-mlogloss:0.538976\teval-mlogloss:0.842757\n",
+      "[76]\ttrain-mlogloss:0.536663\teval-mlogloss:0.84242\n",
+      "[77]\ttrain-mlogloss:0.534691\teval-mlogloss:0.842137\n",
+      "[78]\ttrain-mlogloss:0.532514\teval-mlogloss:0.841939\n",
+      "[79]\ttrain-mlogloss:0.530408\teval-mlogloss:0.841587\n",
+      "[80]\ttrain-mlogloss:0.527647\teval-mlogloss:0.841084\n",
+      "[81]\ttrain-mlogloss:0.52524\teval-mlogloss:0.84077\n",
+      "[82]\ttrain-mlogloss:0.523416\teval-mlogloss:0.840579\n",
+      "[83]\ttrain-mlogloss:0.520857\teval-mlogloss:0.840102\n",
+      "[84]\ttrain-mlogloss:0.518539\teval-mlogloss:0.839986\n",
+      "[85]\ttrain-mlogloss:0.516191\teval-mlogloss:0.839963\n",
+      "[86]\ttrain-mlogloss:0.51394\teval-mlogloss:0.839523\n",
+      "[87]\ttrain-mlogloss:0.511551\teval-mlogloss:0.839239\n",
+      "[88]\ttrain-mlogloss:0.509243\teval-mlogloss:0.838888\n",
+      "[89]\ttrain-mlogloss:0.507506\teval-mlogloss:0.838832\n",
+      "[90]\ttrain-mlogloss:0.505233\teval-mlogloss:0.83855\n",
+      "[91]\ttrain-mlogloss:0.50314\teval-mlogloss:0.838481\n",
+      "[92]\ttrain-mlogloss:0.501113\teval-mlogloss:0.83835\n",
+      "[93]\ttrain-mlogloss:0.498811\teval-mlogloss:0.838294\n",
+      "[94]\ttrain-mlogloss:0.496785\teval-mlogloss:0.838226\n",
+      "[95]\ttrain-mlogloss:0.494806\teval-mlogloss:0.83801\n",
+      "[96]\ttrain-mlogloss:0.49322\teval-mlogloss:0.837976\n",
+      "[97]\ttrain-mlogloss:0.491\teval-mlogloss:0.837987\n",
+      "[98]\ttrain-mlogloss:0.489347\teval-mlogloss:0.83788\n",
+      "[99]\ttrain-mlogloss:0.487294\teval-mlogloss:0.837904\n",
+      "[100]\ttrain-mlogloss:0.485472\teval-mlogloss:0.83771\n",
+      "[101]\ttrain-mlogloss:0.483385\teval-mlogloss:0.83759\n",
+      "[102]\ttrain-mlogloss:0.480858\teval-mlogloss:0.837301\n",
+      "[103]\ttrain-mlogloss:0.4788\teval-mlogloss:0.837055\n",
+      "[104]\ttrain-mlogloss:0.477102\teval-mlogloss:0.837201\n",
+      "[105]\ttrain-mlogloss:0.475351\teval-mlogloss:0.837181\n",
+      "[106]\ttrain-mlogloss:0.473506\teval-mlogloss:0.837153\n",
+      "[107]\ttrain-mlogloss:0.471883\teval-mlogloss:0.837229\n",
+      "[108]\ttrain-mlogloss:0.470216\teval-mlogloss:0.837405\n",
+      "[109]\ttrain-mlogloss:0.467822\teval-mlogloss:0.837571\n",
+      "[110]\ttrain-mlogloss:0.465972\teval-mlogloss:0.837607\n",
+      "[111]\ttrain-mlogloss:0.464025\teval-mlogloss:0.8377\n",
+      "[112]\ttrain-mlogloss:0.462125\teval-mlogloss:0.837722\n",
+      "[113]\ttrain-mlogloss:0.460358\teval-mlogloss:0.83772\n",
+      "Stopping. Best iteration:\n",
+      "[103]\ttrain-mlogloss:0.4788\teval-mlogloss:0.837055\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "num_boost_round = 300\n",
+    "params = {'objective': 'multi:softprob', \n",
+    "          'eval_metric': 'mlogloss',\n",
+    "          'num_class':38, \n",
+    "          'max_delta_step': 3, \n",
+    "          'eta': 0.25}\n",
+    "\n",
+    "evals = [(dtrain, 'train'), (dtest, 'eval')]\n",
+    "\n",
+    "\n",
+    "bst = xgb.train(params=params,  \n",
+    "                dtrain=dtrain, \n",
+    "                num_boost_round=num_boost_round, \n",
+    "                evals=evals,\n",
+    "               early_stopping_rounds=10,)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 94,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "classes = np.array(list(set(label_enc.inverse_transform(y_labeled))))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 95,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "dmtest = xgb.DMatrix(test.values) \n",
+    "pred_proba = bst.predict(dmtest)\n",
+    "\n",
+    "proba_df = pd.DataFrame(pred_proba, columns=classes)\n",
+    "proba_df.columns = proba_df.columns.map(lambda x: \"TripType_\" + str(x))\n",
+    "sub_df = pd.concat([test[[\"VisitNumber\"]], proba_df], axis=1)\n",
+    "sub_df.to_csv(\"../submission_0410_noProb_xgb_01.csv\", index=False)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.6.3"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2
+}
