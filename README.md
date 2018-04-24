@@ -1,7 +1,7 @@
 ##### Fast Campus Data Science School 7th Team Project 2 Classification
 # [Walmart Recruiting: Trip Type Classification](https://www.kaggle.com/c/walmart-recruiting-trip-type-classification#description)
 
-![](https://github.com/yunah0515/dss7_SWYA_walmart/blob/master/walmart_triptypes640.png?raw=true)
+![](https://github.com/yunah0515/dss7_SWYA_walmart/blob/master/image/walmart_triptypes640.png?raw=true)
 
 # [ Overview ]
 
