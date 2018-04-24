@@ -1,7 +1,9 @@
 ##### Fast Campus Data Science School 7th Team Project 2 Classification
 # [Walmart Recruiting: Trip Type Classification](https://www.kaggle.com/c/walmart-recruiting-trip-type-classification#description)
 
+
 ![](https://github.com/yunah0515/dss7_SWYA_walmart/blob/master/image/walmart_triptypes640.png?raw=true)
+
 
 # [ Overview ]
 
@@ -16,6 +18,8 @@
 ### (3) Objective : 
 > #### 각 고객의 구매정보에 따른 구매 건의 Type을 분류
 
+<br>
+
 # [Data Description]
 
 > #### train : 647054 rows, 7 columns
@@ -23,7 +27,7 @@
 > - 타겟값 TripType을 제외한 동일한 특성의 컬럼
 
 | Index | Feature               | Description                                  | Unique |
-|-------|-----------------------|----------------------------------------------|--------|
+|-------:|:-----------------------:|:----------------------------------------------:|--------:|
 | 1     | TripType              | Target                                       | 38     |
 | 2     | VisitNumber           | 각 손님의 Index                              | 95674  |
 | 3     | Weekday               | VisitNumber가 발생한 요일                    | 7      |
@@ -37,6 +41,8 @@
 
 # [Evaluation]
 > ![](https://github.com/yunah0515/dss7_SWYA_walmart/blob/master/image/evaluation.png?raw=true)
+
+<br>
 
 # [Contents]
 
