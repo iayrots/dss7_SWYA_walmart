@@ -16,7 +16,7 @@
 > #### Walmart Shopping Records
 
 ### (3) Objective : 
-> #### 각 고객의 구매정보에 따른 구매 건의 Type을 분류
+> #### Classification of each customers' TripType
 
 <br>
 
