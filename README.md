@@ -8,9 +8,9 @@
 # [ Overview ]
 
 ### (1) Team : SWYA 
-> - 김선웅 
-> - 서원영 
-> - 백윤아 
+> - SunWoong Kim (novdov) 
+> - WonYoung Seo (lucaseo)
+> - YunAh Baek (yunah0515)
 
 ### (2) Dataset : 
 > #### Walmart Shopping Records
@@ -24,17 +24,16 @@
 
 > #### train : 647054 rows, 7 columns
 > #### test : 653646 rows, 6 columns
-> - 타겟값 TripType을 제외한 동일한 특성의 컬럼
 
 | Index | Feature               | Description                                  | Unique |
 |-------:|:-----------------------:|:----------------------------------------------:|--------:|
-| 1     | TripType              | Target                                       | 38     |
-| 2     | VisitNumber           | 각 손님의 Index                              | 95674  |
-| 3     | Weekday               | VisitNumber가 발생한 요일                    | 7      |
-| 4     | Upc                   | 구매한 제품의 고유한 바코드                  | 97715  |
-| 5     | ScanCount             | 구매 수량 ( 반품 시 - 값으로 표기 )          | 39     |
-| 6     | DepartmentDescription | 제품의 대분류                                | 69     |
-| 7     | FinelineNumber        | 월마트 자체적으로 정의 한 제품의 소분류 코드 | 5196   |
+| 1     | TripType              | a categorical id representing the type of shopping trip the customer made                                       | 38     |
+| 2     | VisitNumber           | an id corresponding to a single trip by a single customer                              | 95674  |
+| 3     | Weekday               | the weekday of the trip                    | 7      |
+| 4     | Upc                   | the UPC number of the product purchased                  | 97715  |
+| 5     | ScanCount             | the number of the given item that was purchased. A negative value indicates a product return          | 39     |
+| 6     | DepartmentDescription | a high-level description of the item's department                                | 69     |
+| 7     | FinelineNumber        | a more refined category for each of the products, created by Walmart | 5196   |
 
 
 <br>
