@@ -4,6 +4,7 @@
 
 ![](https://github.com/yunah0515/dss7_SWYA_walmart/blob/master/image/walmart_triptypes640.png?raw=true)
 
+#### [Click for Project Report](https://github.com/yunah0515/dss7_SWYA_walmart/blob/master/main_presentation/2%ED%8C%80(SWYA)_B_%EB%B0%9C%ED%91%9C%EC%9E%90%EB%A3%8C.ipynb)
 
 # [ Overview ]
 
